@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgejo Team Setup & Clone Script Generator</title>
+    <link rel="icon" href="https://i.postimg.cc/vmqqX12L/gitlfs.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        h1,
+        h2 {
+            color: #2c3e50;
+        }
+
+        input,
+        button,
+        textarea {
+            margin-top: 10px;
+            padding: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+        }
+
+        .script-box {
+            height: 150px;
+            font-family: monospace;
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        pre {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        /* Bottom Step Guide */
+        .step-guide {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #f0f0f0;
+            color: #000;
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 0;
+            border-top: 1px solid #ccc;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+        }
+
+        .step-guide a {
+            display: inline-block;
+            text-align: center;
+            padding: 10px 15px;
+            margin: 0 5px;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            min-width: 80px;
+        }
+
+        .step-guide a:hover,
+        .step-guide a.active {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .step-guide a span {
+            display: block;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .step-guide a.active span {
+            color: #fff;
+        }
+
+        input,
+        textarea {
+            display: block;
+            width: calc(100% - 20px) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><img src="https://i.postimg.cc/CKng8yk4/forgejo.png" style="width: 30px; margin-right: 6px;" /> Team Setup &
+        Clone Script Generator</h1>
+    <div class="section" id="step1">
+        <h2>Step 1 — Setup Forgejo on Azure</h2>
+        <p>We use an automated script <code>create_vm_s_forgejo</code> to provision a 1TB Ubuntu VM, install Forgejo,
+            Git LFS, and make it accessible on a public URL:</p>
+        <pre>
+# create_vm_s_forgejo__1
+# - Creates 1TB Ubuntu VM on Azure
+# - Installs Git, Git LFS
+# - Downloads & installs Forgejo
+# - Makes Forgejo accessible at https://forgejo.example.com
+</pre>
+        <p><img src="https://i.postimg.cc/wvKdcWQf/gitlfs.png" style="width: 60px; margin-right: 6px;" />Git-LFS
+            allows you to
+            upload and store
+            files more than 50mb, with extra filetype-specific monitoring</p>
+        <p>After the VM is running, launch Forgejo:</p>
+        <pre>
+# Forgejo installation takes ~10m to complete 
+# Open https://forgejo.example.com in the browser
+</pre>
+
+        <p>The first time you start the app, you need to:</p>
+        <ol>
+            <li>Create an <strong>admin username & password</strong></li>
+            <li>Log in to the web UI</li>
+            <li>Create your first user profile (e.g., <strong>your-username</strong>)</li>
+            <li>Create your first repository (e.g., <strong>your-reponame</strong>)</li>
+            <li>Generate your first personal access token (e.g., <strong>azure-cli</strong>) via <em>Settings →
+                    Applications → Generate New Token</em></li>
+            <li>Set token permissions to <strong>repository read/write</strong> and copy the token (e.g.,
+                <code>1c9ca278c04f1713f3ff29ac03f81179a11acf85</code>)
+            </li>
+        </ol>
+    </div>
+
+    <div class="section" id="step2">
+        <h2>Step 2 — Clone Scripts Generator</h2>
+
+        <label for="forgejoUrl">Forgejo URL</label>
+        <input type="text" id="forgejoUrl" placeholder="https://forgejo.example.com">
+
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="username">
+
+        <label for="token">Personal Access Token</label>
+        <input type="text" id="token" placeholder="1c9ca278c04f1713f3ff29ac03f81179a11acf85">
+
+        <!-- Switcher -->
+        <div class="script-switcher">
+            <div class="switch-option active" id="vscodeTab" onclick="switchScript('vscode')">
+                <img src="https://cdn.sdappnet.cloud/rtx/images/vscode.png" alt="VSCode">
+            </div>
+            <div class="switch-option" id="vsTab" onclick="switchScript('vs')">
+                <img src="https://cdn.sdappnet.cloud/rtx/images/visualstudio.png" alt="Visual Studio">
+            </div>
+        </div>
+
+        <!-- Script boxes -->
+        <div class="script-container">
+            <div id="vscodeSection" class="script-section active">
+                <label for="vscodeScript">VSCode Online (bash) Script</label>
+                <textarea id="vscodeScript" class="script-box" readonly style="min-height: 250px;"></textarea>
+                <button onclick="downloadScript('vscode')">Download VSCode Script (.sh)</button>
+            </div>
+
+            <div id="vsSection" class="script-section">
+                <label for="vsScript">Visual Studio 2022 (PowerShell) Script</label>
+                <textarea id="vsScript" class="script-box" readonly style="min-height: 250px;"></textarea>
+                <button onclick="downloadScript('vs')">Download PowerShell Script (.ps1)</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .script-switcher {
+
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+
+        .switch-option {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+            background: #f3f3f3;
+        }
+
+        .switch-option img {
+            height: 50px;
+        }
+
+        .switch-option.active {
+            border-color: #0078d7;
+            background: #e6f0ff;
+        }
+
+        .script-section {
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .script-section.active {
+            display: flex;
+        }
+
+        .script-box {
+            width: 100%;
+            height: 120px;
+            resize: none;
+        }
+
+        button {
+            margin-top: 0.5rem;
+        }
+    </style>
+
+    <script>
+        function switchScript(type) {
+            const vscodeTab = document.getElementById('vscodeTab');
+            const vsTab = document.getElementById('vsTab');
+            const vscodeSection = document.getElementById('vscodeSection');
+            const vsSection = document.getElementById('vsSection');
+
+            if (type === 'vscode') {
+                vscodeTab.classList.add('active');
+                vsTab.classList.remove('active');
+                vscodeSection.classList.add('active');
+                vsSection.classList.remove('active');
+            } else {
+                vsTab.classList.add('active');
+                vscodeTab.classList.remove('active');
+                vsSection.classList.add('active');
+                vscodeSection.classList.remove('active');
+            }
+        }
+
+        function downloadScript(type) {
+            const content = document.getElementById(type === 'vscode' ? 'vscodeScript' : 'vsScript').value;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = type === 'vscode' ? 'vscode_script.sh' : 'visualstudio_script.ps1';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    </script>
+
+
+    <div class="section" id="step3">
+        <h2>Step 3 — Adding Collaborators</h2>
+        <ol>
+            <li>New team members create their own Forgejo accounts at <strong>https://forgejo.example.com</strong></li>
+            <li>As project manager, go to your repo → <strong>Settings → Collaboration</strong></li>
+            <li>Search for their username and add them as <strong>collaborators</strong> with Write access</li>
+            <li>Each collaborator generates their own personal access token for Git operations</li>
+        </ol>
+    </div>
+
+    <div class="section" id="step4">
+        <h2>Step 4 — Setup Team Access</h2>
+        <p>Forgejo supports multiple users on a repo without sharing accounts:</p>
+        <ol>
+            <li>Each team member creates their own Forgejo account.</li>
+            <li>The repo owner/admin adds them as a collaborator on the <strong>your-reponame</strong> repo:
+                <ul>
+                    <li>Go to repo → <strong>Settings → Collaborators & Teams → Add Collaborator</strong></li>
+                    <li>Set permission level:
+                        <ul>
+                            <li><strong>Read</strong> → pull only</li>
+                            <li><strong>Write</strong> → pull & push</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Each user generates their own personal access token.</li>
+            <li>Each dev clones using their own token:
+                <pre>git clone https://TOKEN@forgejo.example.com/USERNAME/REPO.git</pre>
+            </li>
+        </ol>
+        <p>✅ <strong>Pros:</strong></p>
+        <ul>
+            <li>Audit trail preserved (each commit shows the correct author).</li>
+            <li>Tokens are separate, so revoking one token doesn’t affect the team.</li>
+            <li>Works well with branch/PR workflows.</li>
+        </ul>
+        <p>✅ <strong>Best practice for a game dev team:</strong></p>
+        <ul>
+            <li>Create separate accounts for each dev.</li>
+            <li>Use <strong>Write access</strong> for everyone who needs to push.</li>
+            <li>Use feature branches + PRs to avoid conflicts.</li>
+            <li>Use tokens for authentication — no passwords shared.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="step5">
+        <h2>Step 5 — Setup VSCode and Visual Studio 2022</h2>
+        <p>Your project enables you to utilize two powerful text editors:</p>
+        <ul>
+            <li><strong>VSCode Online</strong> — accessible via <a
+                    href="https://vscode.example.com">https://vscode.example.com</a>. You need to set this up for
+                cloud-based coding.</li>
+            <li><strong>Visual Studio 2022</strong> — installed on Windows 10 for game development and compilation.
+            </li>
+        </ul>
+        <p>Both editors can be used simultaneously for writing code. However, the game compilation happens in
+            <strong>Visual
+                Studio 2022</strong>.
+        </p>
+    </div>
+
+    <div class="section" id="step6">
+        <h2>Step 6 — Enable Git LFS on Developer Machines</h2>
+        <p>
+            To manage large binary files in video game projects (like UE3 assets), Git LFS should be initialized on
+            every
+            developer machine:
+        </p>
+
+        <!-- Switcher -->
+        <div class="script-switcher">
+            <div class="switch-option active" id="bashTab" onclick="switchLfsScript('bash')">
+                <img src="https://cdn.sdappnet.cloud/rtx/images/vscode.png" alt="VSCode">
+            </div>
+            <div class="switch-option" id="pwshTab" onclick="switchLfsScript('pwsh')">
+                <img src="https://cdn.sdappnet.cloud/rtx/images/visualstudio.png" alt="Visual Studio">
+            </div>
+        </div>
+
+        <!-- Script Containers -->
+        <div class="script-container">
+            <!-- Bash -->
+            <div id="bashSection" class="script-section active">
+                <label for="bashScript">Git LFS Bash Script (Linux / macOS)</label>
+                <textarea id="bashScript" class="script-box" readonly style="min-height: 500px;">
+#!/bin/bash
+# =========================================================
+# engine_gitlfs.sh
+# Unified Git LFS tracking for multiple game engines
+# Ensures LFS always downloads files (--no-skip-smudge)
+# Interactive selection if engine not provided
+# =========================================================
+# Usage: ./engine_gitlfs.sh [engine] <path-to-repo> [push]
+# Engines supported: ue3 | goldsrc | source | idtech3 | idtech4 | cryengine1 | thiefdark | sithengine
+# Optional third argument "push" will push commits to origin.
+
+set -euo pipefail
+
+ENGINE="${1:-}"
+REPO_PATH="${2:-}"
+DO_PUSH="${3:-}"
+
+# ------------------ Supported engines ------------------
+SUPPORTED_ENGINES=(ue3 goldsrc source idtech3 idtech4 cryengine1 thiefdark sithengine)
+
+# ------------------ Interactive engine selection ------------------
+if [[ -z "$ENGINE" ]]; then
+echo "Please select a game engine to track with Git LFS:"
+    for i in "${!SUPPORTED_ENGINES[@]}"; do
+        echo " $((i+1)). ${SUPPORTED_ENGINES[$i]}"
+    done
+    read -rp "Enter number (1-${#SUPPORTED_ENGINES[@]}): " choice
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 || choice> ${#SUPPORTED_ENGINES[@]} )); then
+        echo "❌ Invalid selection."
+        exit 1
+    fi
+    ENGINE="${SUPPORTED_ENGINES[$((choice-1))]}"
+    echo "✅ Selected engine: $ENGINE"
+fi
+
+
+# ----------------------- Dependencies ------------------------
+if ! command -v git >/dev/null 2>&1; then
+    echo "❌ git not installed."
+    exit 1
+fi
+
+if ! command -v git-lfs >/dev/null 2>&1; then
+    echo "📦 Installing Git LFS..."
+    sudo apt-get update -q
+    sudo apt-get install -y git-lfs
+fi
+
+echo "🔧 Initializing Git LFS..."
+git lfs install --force || true
+
+# ------------------ Define engine-specific patterns ------------------
+declare -A ENGINE_PATTERNS
+
+# Unreal Engine 3
+ENGINE_PATTERNS[ue3]="*.ico *.upk *.umap *.psa *.psk *.abs *.fxa *.fbx *.png *.psd *.wav *.mp4 \
+*.bik *.tga *.bmp *.dds *.jpg *.jpeg *.ogg *.mp3 *.usx *.utx *.uax *.ukx *.unr *.uc *.u \
+*.swf *.bin *.pak *.iso *.zip *.rar *.dll *.lib *.pdb *.exe *.sln *.vcproj *.vcxproj *.vcxitems \
+*.filters *.sdf *.log *.t3d *.udk *.chtml *.max *.3ds *.mb *.ma *.blend *.ztl *.ztb *.tbx *.mtl *.obj *.stl \
+*.bgeo *.abc *.ply *.gltf *.glb *.igs *.step *.stp *.x3d *.bsp *.vox *.tiff *.tif *.exr *.hdr *.pfm \
+*.raw *.ies *.sbsar *.sbs *.sppr *.tx *.xcf *.mat *.cg *.cgfx *.sma *.smi *.ptx *.bvh *.c3d *.anim \
+*.skel *.rig *.mc *.mcx *.phy *.udk *.ukx *.uax *.utx *.usx *.fxa *.fxp *.bik *.swf *.gtl *.gma *.pak \
+*.pakchunk* *.pak.info *.umx *.uplugin *.uproject *.uasset *.uexp *.ubulk *.wav *.mp3 *.ogg *.flac *.m4a \
+*.aac *.ac3 *.mov *.avi *.wmv *.flv *.mkv *.m4v *.mxf *.r3d *.7z *.tar *.gz *.lz4 *.lzma *.xz *.cab \
+*.msi *.vcxproj.user *.vsconfig *.props *.targets *.filters *.hlsl *.glsl *.fx *.fxc *.bat *.sh *.cmd \
+*.patch *.diff *.cmake *.mak *.vssettings *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[ue3]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# GoldSrc / Half-Life 1
+ENGINE_PATTERNS[goldsrc]="*.wad *.bsp *.mdl *.spr *.wav *.mp3 *.txt *.cfg *.exe *.dll *.zip *.rar \
+*.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[goldsrc]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# Source Engine / Hammer
+ENGINE_PATTERNS[source]="*.vmf *.vmt *.vtf *.mdl *.wav *.mp3 *.txt *.cfg *.exe *.dll *.zip *.rar \
+*.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[source]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# idTech3
+ENGINE_PATTERNS[idtech3]="*.pk3 *.bsp *.shader *.tga *.jpg *.png *.wav *.mp3 *.cfg *.script *.pak \
+*.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[idtech3]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# idTech4
+ENGINE_PATTERNS[idtech4]="*.pk4 *.map *.tga *.jpg *.png *.shader *.wav *.mp3 *.cfg *.script *.pak \
+*.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[idtech4]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# CryEngine 1 / FarCry 1
+ENGINE_PATTERNS[cryengine1]="*.tga *.dds *.mtl *.xml *.cgf *.chr *.skin *.anm *.caf *.wav *.ogg *.mp3 \
+*.lua *.cfg *.pak *.zip *.7z *.log *.dll *.so *.exe *.sln *.vcxproj *.filters *.user *.code-workspace \
+*.vscode/*.json"
+ENGINE_PATTERNS[cryengine1]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# Thief 1-2 Dark Engine
+ENGINE_PATTERNS[thiefdark]="*.mis *.gam *.bin *.crf *.cam *.pkt *.wav *.voc *.tga *.pcx *.pal *.mat *.mot *.cal
+\
+*.vdb *.fnm *.bin *.ms *.h *.hxz *.hx *.hk *.eq *.shock *.key *.txt *.cfg *.exe *.dll *.zip *.rar \
+*.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[thiefdark]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# Jedi Knight: Dark Forces 2 (Sith Engine)
+ENGINE_PATTERNS[sithengine]="*.3do *.anm *.bm *.cmp *.cfg *.dac *.dad *.dao *.mat *.md *.md3 *.pal *.pup \
+*.sfx *.tga *.txt *.vox *.wav *.git *.key *.mat *.snd *.snd *.voc *.wal *.wed *.zkn *.zkp *.zkl \
+*.exe *.dll *.zip *.rar *.sln *.vcxproj *.filters *.user *.code-workspace *.vscode/*.json"
+ENGINE_PATTERNS[sithengine]+=" *.idea *.iml *.ipr *.iws CMakeLists.txt *.cmake"
+
+# ----------------------- Find and migrate large files -----------------------
+echo "🔍 Scanning for large files (>10MB)..."
+find . -type f -size +10M -exec ls -lh {} \; | awk '{ print $9 ": " $5 }' 2>/dev/null || echo "No large files
+found or error scanning."
+
+echo "🔄 Setting up LFS tracking for large files..."
+# Safer approach - only track new files, don't migrate existing history
+git lfs install --force --skip-repo || true
+
+# ----------------------- Apply Git LFS tracking -----------------------
+echo "📦 Tracking files for engine: $ENGINE"
+PATTERNS=(${ENGINE_PATTERNS[$ENGINE]})
+for pattern in "${PATTERNS[@]}"; do
+    git lfs track "$pattern" 2>/dev/null || true
+done
+
+# ----------------------- Show .gitattributes -----------------------
+echo "📄 Current .gitattributes:"
+cat .gitattributes || true
+
+# ----------------------- Commit changes -----------------------
+echo "💾 Committing LFS configuration..."
+git add .gitattributes
+
+if git diff --cached --quiet; then
+    echo "ℹ️ No changes to commit."
+else
+    git commit -m "Enable Git LFS tracking for $ENGINE assets" || true
+fi
+
+# ----------------------- Push changes if requested -----------------------
+if [ "$DO_PUSH" = "push" ]; then
+    echo "🚀 Pushing to remote repository..."
+
+    # Push LFS objects first
+    echo "📤 Pushing LFS objects..."
+    git lfs push origin main --all || echo "⚠️ LFS push had issues, continuing..."
+
+    # Then push regular commits
+    echo "📤 Pushing Git commits..."
+    git push origin main || echo "⚠️ Push failed, check remote and credentials"
+else
+    echo "💡 Add 'push' as third argument to automatically push changes"
+    echo "💡 Manual push commands:"
+    echo " git lfs push origin main --all"
+    echo " git push origin main"
+fi
+
+echo "✅ Git LFS tracking applied successfully for $ENGINE!"
+          </textarea>
+                <button onclick="downloadLfsScript('bash')">Download Bash Script (.sh)</button>
+            </div>
+
+            <!-- PowerShell -->
+            <div id="pwshSection" class="script-section">
+                <label for="pwshScript">Git LFS PowerShell Script (Windows)</label>
+                <textarea id="pwshScript" class="script-box" readonly style="min-height: 500px;">
+#!/usr/bin/env pwsh
+# =========================================================
+# engine_gitlfs.ps1
+# Unified Git LFS tracking for multiple game engines
+# Ensures LFS always downloads files (--no-skip-smudge)
+# Interactive selection if engine not provided
+# =========================================================
+# Usage: .\engine_gitlfs.ps1 [engine] [push]
+# Engines supported: ue3 | goldsrc | source | idtech3 | idtech4 | cryengine1 | thiefdark | sithengine
+# Optional second argument "push" will push commits to origin.
+
+param(
+    [string]$Engine = "",
+    [string]$DoPush = ""
+)
+
+# ------------------ Supported engines ------------------
+$SupportedEngines = @("ue3", "goldsrc", "source", "idtech3", "idtech4", "cryengine1", "thiefdark", "sithengine")
+
+# ------------------ Interactive engine selection ------------------
+if ([string]::IsNullOrEmpty($Engine)) {
+    Write-Host "Please select a game engine to track with Git LFS:"
+    for ($i = 0; $i -lt $SupportedEngines.Length; $i++) {
+        Write-Host " $($i+1). $($SupportedEngines[$i])"
+    }
+    $choice = Read-Host "Enter number (1-$($SupportedEngines.Length))"
+
+    if ($choice -match '^\d+$' -and [int]$choice -ge 1 -and [int]$choice -le $SupportedEngines.Length) {
+        $Engine = $SupportedEngines[[int]$choice - 1]
+        Write-Host "✅ Selected engine: $Engine"
+    } else {
+        Write-Host "❌ Invalid selection."
+        exit 1
+    }
+}
+
+# ----------------------- Dependencies ------------------------
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ git not installed or not in PATH."
+    exit 1
+}
+
+if (-not (Get-Command git-lfs -ErrorAction SilentlyContinue)) {
+    Write-Host "📦 Git LFS not found. Please install Git LFS from:"
+    Write-Host "https://git-lfs.github.com/"
+    exit 1
+}
+
+Write-Host "🔧 Initializing Git LFS..."
+git lfs install --force
+
+# ------------------ Define engine-specific patterns ------------------
+$EnginePatterns = @{
+    ue3 = @(
+        "*.ico", "*.upk", "*.umap", "*.psa", "*.psk", "*.abs", "*.fxa", "*.fbx", "*.png", "*.psd", "*.wav", "*.mp4",
+        "*.bik", "*.tga", "*.bmp", "*.dds", "*.jpg", "*.jpeg", "*.ogg", "*.mp3", "*.usx", "*.utx", "*.uax", "*.ukx",
+        "*.unr", "*.uc", "*.u", "*.swf", "*.bin", "*.pak", "*.iso", "*.zip", "*.rar", "*.dll", "*.lib", "*.pdb",
+        "*.exe", "*.sln", "*.vcproj", "*.vcxproj", "*.vcxitems", "*.filters", "*.sdf", "*.log", "*.t3d", "*.udk",
+        "*.chtml", "*.max", "*.3ds", "*.mb", "*.ma", "*.blend", "*.ztl", "*.ztb", "*.tbx", "*.mtl", "*.obj", "*.stl",
+        "*.bgeo", "*.abc", "*.ply", "*.gltf", "*.glb", "*.igs", "*.step", "*.stp", "*.x3d", "*.bsp", "*.vox",
+        "*.tiff", "*.tif", "*.exr", "*.hdr", "*.pfm", "*.raw", "*.ies", "*.sbsar", "*.sbs", "*.sppr", "*.tx",
+        "*.xcf", "*.mat", "*.cg", "*.cgfx", "*.sma", "*.smi", "*.ptx", "*.bvh", "*.c3d", "*.anim", "*.skel", "*.rig",
+        "*.mc", "*.mcx", "*.phy", "*.udk", "*.ukx", "*.uax", "*.utx", "*.usx", "*.fxa", "*.fxp", "*.bik", "*.swf",
+        "*.gtl", "*.gma", "*.pak", "*.pakchunk*", "*.pak.info", "*.umx", "*.uplugin", "*.uproject", "*.uasset",
+        "*.uexp", "*.ubulk", "*.wav", "*.mp3", "*.ogg", "*.flac", "*.m4a", "*.aac", "*.ac3", "*.mov", "*.avi",
+        "*.wmv", "*.flv", "*.mkv", "*.m4v", "*.mxf", "*.r3d", "*.7z", "*.tar", "*.gz", "*.lz4", "*.lzma", "*.xz",
+        "*.cab", "*.msi", "*.vcxproj.user", "*.vsconfig", "*.props", "*.targets", "*.filters", "*.hlsl", "*.glsl",
+        "*.fx", "*.fxc", "*.bat", "*.sh", "*.cmd", "*.patch", "*.diff", "*.cmake", "*.mak", "*.vssettings",
+        "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml", "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    goldsrc = @(
+        "*.wad", "*.bsp", "*.mdl", "*.spr", "*.wav", "*.mp3", "*.txt", "*.cfg", "*.exe", "*.dll", "*.zip", "*.rar",
+        "*.sln", "*.vcxproj", "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml",
+        "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    source = @(
+        "*.vmf", "*.vmt", "*.vtf", "*.mdl", "*.wav", "*.mp3", "*.txt", "*.cfg", "*.exe", "*.dll", "*.zip", "*.rar",
+        "*.sln", "*.vcxproj", "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml",
+        "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    idtech3 = @(
+        "*.pk3", "*.bsp", "*.shader", "*.tga", "*.jpg", "*.png", "*.wav", "*.mp3", "*.cfg", "*.script", "*.pak",
+        "*.sln", "*.vcxproj", "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml",
+        "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    idtech4 = @(
+        "*.pk4", "*.map", "*.tga", "*.jpg", "*.png", "*.shader", "*.wav", "*.mp3", "*.cfg", "*.script", "*.pak",
+        "*.sln", "*.vcxproj", "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml",
+        "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    cryengine1 = @(
+        "*.tga", "*.dds", "*.mtl", "*.xml", "*.cgf", "*.chr", "*.skin", "*.anm", "*.caf", "*.wav", "*.ogg", "*.mp3",
+        "*.lua", "*.cfg", "*.pak", "*.zip", "*.7z", "*.log", "*.dll", "*.so", "*.exe", "*.sln", "*.vcxproj",
+        "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml", "*.ipr", "*.iws",
+        "CMakeLists.txt", "*.cmake"
+    )
+    thiefdark = @(
+        "*.mis", "*.gam", "*.bin", "*.crf", "*.cam", "*.pkt", "*.wav", "*.voc", "*.tga", "*.pcx", "*.pal", "*.mat",
+        "*.mot", "*.cal", "*.vdb", "*.fnm", "*.bin", "*.ms", "*.h", "*.hxz", "*.hx", "*.hk", "*.eq", "*.shock",
+        "*.key", "*.txt", "*.cfg", "*.exe", "*.dll", "*.zip", "*.rar", "*.sln", "*.vcxproj", "*.filters", "*.user",
+        "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml", "*.ipr", "*.iws", "CMakeLists.txt", "*.cmake"
+    )
+    sithengine = @(
+        "*.3do", "*.anm", "*.bm", "*.cmp", "*.cfg", "*.dac", "*.dad", "*.dao", "*.mat", "*.md", "*.md3", "*.pal",
+        "*.pup", "*.sfx", "*.tga", "*.txt", "*.vox", "*.wav", "*.git", "*.key", "*.mat", "*.snd", "*.snd", "*.voc",
+        "*.wal", "*.wed", "*.zkn", "*.zkp", "*.zkl", "*.exe", "*.dll", "*.zip", "*.rar", "*.sln", "*.vcxproj",
+        "*.filters", "*.user", "*.code-workspace", "*.vscode/*.json", "*.idea", "*.iml", "*.ipr", "*.iws",
+        "CMakeLists.txt", "*.cmake"
+    )
+}
+
+# ----------------------- Find and migrate large files -----------------------
+Write-Host "🔍 Scanning for large files (>10MB)..."
+Get-ChildItem -Recurse -File | Where-Object { $_.Length -gt 10MB } | ForEach-Object {
+    Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 2)) MB"
+}
+
+Write-Host "🔄 Setting up LFS tracking for large files..."
+git lfs install --force --skip-repo
+
+# ----------------------- Apply Git LFS tracking -----------------------
+Write-Host "📦 Tracking files for engine: $Engine"
+$patterns = $EnginePatterns[$Engine]
+foreach ($pattern in $patterns) {
+    git lfs track $pattern 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "⚠️ Could not track pattern: $pattern"
+    }
+}
+
+# ----------------------- Show .gitattributes -----------------------
+Write-Host "📄 Current .gitattributes:"
+if (Test-Path .gitattributes) {
+    Get-Content .gitattributes
+} else {
+    Write-Host "No .gitattributes file found"
+}
+
+# ----------------------- Commit changes -----------------------
+Write-Host "💾 Committing LFS configuration..."
+git add .gitattributes
+
+$changes = git status --porcelain .gitattributes
+if ($changes) {
+    git commit -m "Enable Git LFS tracking for $Engine assets"
+} else {
+    Write-Host "ℹ️ No changes to commit."
+}
+
+# ----------------------- Push changes if requested -----------------------
+if ($DoPush -eq "push") {
+    Write-Host "🚀 Pushing to remote repository..."
+
+    Write-Host "📤 Pushing LFS objects..."
+    git lfs push origin main --all
+
+    Write-Host "📤 Pushing Git commits..."
+    git push origin main
+} else {
+    Write-Host "💡 Add 'push' as second argument to automatically push changes"
+    Write-Host "💡 Manual push commands:"
+    Write-Host " git lfs push origin main --all"
+    Write-Host " git push origin main"
+}
+
+Write-Host "✅ Git LFS tracking applied successfully for $Engine!"
+          </textarea>
+                <button onclick="downloadLfsScript('pwsh')">Download PowerShell Script (.ps1)</button>
+            </div>
+        </div>
+
+        <p>
+            ✅ This ensures all large game assets (textures, models, sounds, binaries) are tracked efficiently with Git
+            LFS,
+            reducing repository size and improving collaboration.
+        </p>
+    </div>
+
+
+
+    <script>
+        function switchLfsScript(type) {
+            const bashTab = document.getElementById('bashTab');
+            const pwshTab = document.getElementById('pwshTab');
+            const bashSection = document.getElementById('bashSection');
+            const pwshSection = document.getElementById('pwshSection');
+
+            if (type === 'bash') {
+                bashTab.classList.add('active');
+                pwshTab.classList.remove('active');
+                bashSection.classList.add('active');
+                pwshSection.classList.remove('active');
+            } else {
+                pwshTab.classList.add('active');
+                bashTab.classList.remove('active');
+                pwshSection.classList.add('active');
+                bashSection.classList.remove('active');
+            }
+        }
+
+        function downloadLfsScript(type) {
+            const textarea = document.getElementById(type === 'bash' ? 'bashScript' : 'pwshScript');
+            const content = textarea.value.trim();
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = type === 'bash' ? 'engine_gitlfs.sh' : 'engine_gitlfs.ps1';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    </script>
+
+
+    <section class="section" id="step7">
+        <h2>Step 7 — Setting up Webhooks</h2>
+        <p>Forgejo supports <strong>webhooks</strong>, which let your repository send real-time updates to external
+            services (e.g., Discord, project management tools, or CI/CD pipelines). Configure them here:</p>
+        <p><a href="https://forgejo.example.com/username/repo/settings/hooks" target="_blank">
+                https://forgejo.example.com/username/repo/settings/hooks</a></p>
+
+        <h3>🔔 Discord Webhooks</h3>
+        <ol>
+            <li>Go to your Discord server → <strong>Server Settings → Integrations → Webhooks</strong>.</li>
+            <li>Create a new webhook, copy the <code>https://discord.com/api/webhooks/.../...</code> URL.</li>
+            <li>In Forgejo repo settings → <strong>Webhooks</strong>, add this Discord webhook URL.</li>
+            <li>Select which events to trigger (push, pull request, release, etc.).</li>
+        </ol>
+        <p>Now every commit, PR, or release will post directly to your Discord channel.</p>
+
+        <h3>📋 Team Management Webhooks</h3>
+        <p>You can connect Forgejo to open-source or self-hosted tools by creating webhook endpoints.
+            Each endpoint can process repository events (like pushes, pull requests, or issue updates) and update your
+            project boards, chat systems, or other services.</p>
+        <ul>
+            <li><strong>Matrix / Element:</strong> Create an HTTP webhook to post updates to your team chat.</li>
+            <li><strong>OpenProject / Kanboard / Wekan:</strong> Use a simple Python, Node.js, or Bash script to
+                translate
+                Forgejo webhook payloads into tasks or comments.</li>
+            <li><strong>Custom scripts:</strong> You can run a small server (Python Flask, FastAPI, or Node.js) that
+                receives
+                Forgejo webhooks and triggers build scripts, notifications, or any automation you need.</li>
+        </ul>
+        <p>✅ This keeps your workflow fully open-source and self-hosted, without relying on paid cloud services.</p>
+
+        <h3>Custom Webhook Servers</h3>
+        <h3>🐍 Python Webhook Receiver Example</h3>
+        <p>If you want to process Forgejo events yourself (e.g., trigger a build, auto-tag, or custom bot),
+            here’s a simple Python Flask app to catch webhook payloads:</p>
+
+        <pre><code class="language-python">
+  from flask import Flask, request, jsonify
+
+  app = Flask(__name__)
+
+  @app.route("/webhook", methods=["POST"])
+  def forgejo_webhook():
+      event = request.headers.get("X-Gitea-Event")  # Forgejo is Gitea-compatible
+      payload = request.json
+      print(f"Received {event}: {payload}")
+      
+      # Example: push event
+      if event == "push":
+          commits = payload.get("commits", [])
+          for commit in commits:
+              print(f"New commit: {commit['message']} by {commit['author']['name']}")
+      
+      return jsonify({"status": "ok"})
+
+  if __name__ == "__main__":
+      app.run(host="0.0.0.0", port=5000)
+  </code></pre>
+
+        <h3>⚙️ Posting Back to Discord with Python</h3>
+        <pre><code class="language-python">
+  import requests
+
+  discord_webhook = "https://discord.com/api/webhooks/XXXX/YYYY"
+
+  def post_to_discord(message):
+      data = {"content": message}
+      response = requests.post(discord_webhook, json=data)
+      print("Discord response:", response.status_code)
+
+  # Example usage
+  post_to_discord("New build completed! 🚀")
+  </code></pre>
+
+        <p>✅ With this, you can integrate Forgejo with both Discord for alerts
+            and any custom project management system.</p>
+    </section>
+    <section class="section" id="step8">
+        <h2>Step 8 — Enhancing Forgejo with Tampermonkey</h2>
+
+        <p>
+            To improve workflow efficiency, a custom <a href="https://www.tampermonkey.net/"
+                target="_blank">Tampermonkey</a> script was written for Firefox.
+        </p>
+        <p>This script adds customizable, repository-specific
+            navigation buttons to your Forgejo instance's header.</p>
+        <p>
+            <strong>What does this script do?</strong><br>
+            Once installed, it injects useful icons (for quick access to project management tools, VM creation,
+            documentation, etc.) directly into the Forgejo interface on a per-repository basis. This is ideal for teams
+            that
+            have specific automation or links tied to their projects.
+        </p>
+
+        <p>
+            <strong>Fully Customizable:</strong> The script is a starting point and can be easily modified to add,
+            remove,
+            or change the buttons and their links to fit your exact needs.
+        </p>
+
+        <h3>How to Install:</h3>
+        <ol>
+            <li>
+                <strong>Install Tampermonkey:</strong> First, you need the browser extension that can run user scripts.
+                <br>
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank"
+                    class="button">Download Tampermonkey for Firefox</a>
+            </li>
+
+            <li>
+                <img src="https://i.postimg.cc/yNTz4Xdh/forgejo-tampermonkey.png" style="width: 340px;" />
+                <br>
+                <div>Click the link below to open the generator. Enter your desired
+                    links
+                    and labels, then click the button to create your custom script.</div>
+
+                <a href="https://cdn.sdappnet.cloud/rtx/tampermonkey_forgejo_generator.html" target="_blank">Open the
+                    Forgejo Tampermonkey Script Generator</a>
+            </li>
+            <li>
+                <strong>Install the Script:</strong> Copy the generated script from the generator. Then, in your
+                browser, click on
+                <strong>Extensions → Tampermonkey → Create a new script...</strong> Replace the default content with
+                your copied script
+                and save it.
+            </li>
+            <li>
+                <strong>Refresh Forgejo:</strong>
+                <div>Navigate to your Forgejo repository page and refresh. You should see
+                    your
+                    new navigation buttons in the header.</div>
+                <img src="https://i.postimg.cc/yNG2zQKS/forgejo-tampermonkey-header-buttons-addon.png"
+                    style="width: 320px;" />
+            </li>
+        </ol>
+    </section>
+    <!-- Step Guide -->
+    <div class="step-guide">
+        <a href="#step1" class="active">Step 1<span>Setup Forgejo</span></a>
+        <a href="#step2">Step 2<span>Clone Scripts</span></a>
+        <a href="#step3">Step 3<span>Add Collaborators</span></a>
+        <a href="#step4">Step 4<span>Team Access</span></a>
+        <a href="#step5">Step 5<span>VSCode/VS</span></a>
+        <a href="#step6">Step 6<span>Git LFS</span></a>
+        <a href="#step7">Step 7<span>Webhooks</span></a>
+        <a href="#step8">Step 8<span>Tampermonkey</span></a>
+    </div>
+    <script>
+        // Highlight active step in bottom bar
+        const stepLinks = document.querySelectorAll('.step-guide a');
+
+        function updateActiveStep() {
+            let current = '';
+            document.querySelectorAll('.section').forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                if (window.pageYOffset >= sectionTop - 120 &&
+                    window.pageYOffset < sectionTop + sectionHeight - 120) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            stepLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+
+            // If no section is active, make first step active
+            if (!current && stepLinks.length > 0) {
+                stepLinks[0].classList.add('active');
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', updateActiveStep);
+        window.addEventListener('scroll', updateActiveStep);
+
+        function generateScripts() {
+            const url = document.getElementById('forgejoUrl').value.trim();
+            const user = document.getElementById('username').value.trim();
+            const token = document.getElementById('token').value.trim();
+
+            if (!url || !user || !token) {
+                document.getElementById('vscodeScript').value = "";
+                document.getElementById('vsScript').value = "";
+                return;
+            }
+
+            // Remove protocol (https://) if present
+            const cleanUrl = url.replace(/^https?:\/\//, '');
+
+            // Extract repo name (last part of path)
+            const repoName = cleanUrl.split('/').pop().replace(/\.git$/, '');
+
+            // Build full repo URL (normalize to prevent duplication)
+            const fullRepoUrl = `https://${token}@${cleanUrl}.git`;
+
+            const vscodeScript =
+                `
+#!/bin/bash
+
+# VSCode Online / Cloud Terminal
+    
+# Clone your repository
+git clone ${fullRepoUrl}
+    
+# Move into the repo
+cd ${repoName}
+echo "Repository cloned into ~/${repoName}"
+    
+# Store credentials
+git config --global credential.helper store`;
+
+            const vsScript = `
+# PowerShell / Visual Studio 2022
+# clone from https://${user}:${token}@${cleanUrl}.git 
+# Navigate to D:\\
+D:
+    
+# Clone your repository
+git clone https://${user}:${token}@${cleanUrl}.git D:\\${repoName}
+    
+# Move into the repo
+cd D:\\${repoName}
+Write-Host "Repository cloned into D:\\${repoName}"
+    
+# Store credentials
+git config --global credential.helper manager-core`;
+
+            document.getElementById('vscodeScript').value = vscodeScript;
+            document.getElementById('vsScript').value = vsScript;
+        }
+
+        function downloadScript(type) {
+            let scriptContent, filename;
+            if (type === 'vscode') {
+                scriptContent = document.getElementById('vscodeScript').value;
+                filename = 'forgejo_repo_clone_vscode.sh';
+            } else {
+                scriptContent = document.getElementById('vsScript').value;
+                filename = 'forgejo_repo_clone_visualstudio.ps1';
+            }
+            const blob = new Blob([scriptContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = window.URL.createObjectURL(blob);
+            link.click();
+        }
+
+        document.getElementById('forgejoUrl').addEventListener('input', generateScripts);
+        document.getElementById('username').addEventListener('input', generateScripts);
+        document.getElementById('token').addEventListener('input', generateScripts);
+
+        // Load saved values when page loads
+        window.addEventListener('DOMContentLoaded', function () {
+            const forgejoUrl = document.getElementById('forgejoUrl');
+            const username = document.getElementById('username');
+            const token = document.getElementById('token');
+
+            // Load saved values from localStorage
+            if (localStorage.getItem('forgejoUrl')) {
+                forgejoUrl.value = localStorage.getItem('forgejoUrl');
+            }
+            if (localStorage.getItem('username')) {
+                username.value = localStorage.getItem('username');
+            }
+            if (localStorage.getItem('token')) {
+                token.value = localStorage.getItem('token');
+            }
+
+            // Generate scripts with saved values
+            generateScripts();
+        });
+
+        // Save values when inputs change
+        document.getElementById('forgejoUrl').addEventListener('input', function () {
+            localStorage.setItem('forgejoUrl', this.value);
+            generateScripts();
+        });
+
+        document.getElementById('username').addEventListener('input', function () {
+            localStorage.setItem('username', this.value);
+            generateScripts();
+        });
+
+        document.getElementById('token').addEventListener('input', function () {
+            localStorage.setItem('token', this.value);
+            generateScripts();
+        });
+
+        // Add clear button functionality
+        function clearSavedData() {
+            localStorage.removeItem('forgejoUrl');
+            localStorage.removeItem('username');
+            localStorage.removeItem('token');
+
+            document.getElementById('forgejoUrl').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('token').value = '';
+
+            generateScripts();
+        }
+        // Generate initial empty scripts
+        generateScripts();
+    </script>
+
+
+
+</body>
+
+</html>
